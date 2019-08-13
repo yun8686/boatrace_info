@@ -9,7 +9,7 @@ module.exports = async(admin) => {
      * のデータを取得する
      */
     const browser = await puppeteer.launch({
-        headless: false,
+        headless: true,
         args: [
           '--no-sandbox',
           '--disable-setuid-sandbox'
@@ -41,30 +41,32 @@ module.exports = async(admin) => {
           return raceTitles;
         });
         console.log(JSON.stringify(raceTitles));
-        raceTitles.forEach(async v=>{
-          await db.race.create(v);
-        });
+//        raceTitles.forEach(async v=>{
+//          await db.race.create(v);
+//        });
 
         // racer
-        raceTitles.forEach(async v=>{
+        for(var v of raceTitles){
           var dates = v.dates;
           var place_id = v.place_id;
+          console.log(place_id);
           await delay(DELAY); // スクレイピングする際にはアクセス間隔を1秒あける.
           await page.goto(`http://www.boatrace-db.net/race/racer/date/${dates}/pid/${place_id}/`); // 表示したいURL
           var racers = await page.evaluate(async()=>{
             var racers = [];
             document.querySelectorAll('.racers tbody tr').forEach(v=>{
               racers.push({
-                id: v.querySelectorAll('td')[0].innerHTML,
-                rank: v.querySelectorAll('td')[2].innerHTML,
-                moter: v.querySelectorAll('td')[7].innerHTML,
-                boat: v.querySelectorAll('td')[9].innerHTML,
+                id: v.querySelectorAll('td')[0].innerText,
+                rank: v.querySelectorAll('td')[2].innerText,
+                moter: v.querySelectorAll('td')[7].innerText,
+                boat: v.querySelectorAll('td')[9].innerText,
               });
             });
             return racers;
           });
-          console.log(racers);
-        });
+          v.racers = racers;
+        }
+        console.log(raceTitles.map(v=>v.racers));
       })();
     }
 
