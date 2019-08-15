@@ -8,12 +8,15 @@
     "dev": "cross-env NODE_ENV=development nodemon server/index.js --watch server",
     "build": "nuxt build",
     "start": "cross-env NODE_ENV=production node server/index.js",
-    "generate": "nuxt generate"
+    "generate": "nuxt generate",
+    "seed": "sequelize db:seed:undo:all && sequelize db:seed"
   },
   "dependencies": {
     "cross-env": "^5.2.0",
     "delay": "^4.3.0",
+    "encoding-japanese": "^1.0.29",
     "express": "^4.16.4",
+    "iconv-lite": "^0.5.0",
     "ismobilejs": "^0.5.2",
     "mysql2": "^1.6.5",
     "nuxt": "^2.0.0",

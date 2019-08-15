@@ -45,32 +45,58 @@ module.exports = async(admin) => {
 //          await db.race.create(v);
 //        });
 
-        // racer
+        // raceDetail
         for(var v of raceTitles){
           var dates = v.dates;
           var place_id = v.place_id;
           console.log(place_id);
-          await delay(DELAY); // スクレイピングする際にはアクセス間隔を1秒あける.
-          await page.goto(`http://www.boatrace-db.net/race/racer/date/${dates}/pid/${place_id}/`); // 表示したいURL
-          var racers = await page.evaluate(async()=>{
-            var racers = [];
-            document.querySelectorAll('.racers tbody tr').forEach(v=>{
-              racers.push({
-                id: v.querySelectorAll('td')[0].innerText,
-                rank: v.querySelectorAll('td')[2].innerText,
-                moter: v.querySelectorAll('td')[7].innerText,
-                boat: v.querySelectorAll('td')[9].innerText,
+          const races = [];
+          for(var i=1;i<=12;i++){
+            var rno = ("00"+i).slice(-2);
+            await delay(DELAY); // スクレイピングする際にはアクセス間隔を1秒あける.
+            await page.goto(`http://www.boatrace-db.net/race/detail/date/${dates}/pid/${place_id}/rno/${rno}/`); // 表示したいURL
+            const racers = await page.evaluate(async()=>{
+              var data = {};
+              var result = document.querySelector('#detail_result');
+              data.result = [];
+              result.querySelectorAll('tr').forEach((v,w)=>{
+                data.result.push({
+                  rank: w+1,
+                  waku: v.children[1].textContent,
+                  racer: v.children[2].querySelector('a').href.match(/regno\/(\d+)/)[1],
+                  time: v.children[3].textContent,
+                  kimarite: v.children[4].textContent,
+                });
               });
+              var sinnyu = document.querySelector('#table_slit_st');
+              data.sinnyu = [];
+              sinnyu.querySelectorAll('span').forEach((v,w)=>{
+                data.sinnyu.push({
+                  rank: w+1,
+                  waku: v.id.slice(-1),
+                  time: v.innerHTML,
+                });
+              });
+              var env = document.querySelector('#detail_env');
+              data.env = {
+                weather: env.querySelectorAll('tr')[1].querySelectorAll('td')[0].innerHTML,
+                wind_vec: env.querySelectorAll('tr')[1].querySelectorAll('td')[1].innerHTML,
+                wind_vec_type: env.querySelectorAll('tr')[2].querySelectorAll('td')[1].innerHTML,
+                wind_pow: env.querySelectorAll('tr')[1].querySelectorAll('td')[2].innerHTML,
+                wave_pow: env.querySelectorAll('tr')[1].querySelectorAll('td')[3].innerHTML,
+              };
+              return data;
             });
-            return racers;
-          });
-          v.racers = racers;
+            races.push(racers);
+          }
+          v.racers = races;
+          break;
         }
-        console.log(raceTitles.map(v=>v.racers));
+        console.log(JSON.stringify(raceTitles.map(v=>v.racers)));
       })();
     }
 
-//    browser.close();
+    browser.close();
 };
 
 module.exports();

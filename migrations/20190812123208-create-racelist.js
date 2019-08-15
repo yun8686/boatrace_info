@@ -17,6 +17,18 @@ module.exports = {
       limit_time: {
         type: Sequelize.DATE
       },
+      weather: {
+        type: Sequelize.STRING
+      },
+      wind_vec: {
+        type: Sequelize.STRING
+      },
+      wind_pow: {
+        type: Sequelize.STRING
+      },
+      wave_pow: {
+        type: Sequelize.STRING
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE
